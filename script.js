@@ -461,11 +461,15 @@ function updateVideoCount() {
 function updatePrefectureCount() {
     const count = Object.keys(prefectureData).length;
     const el = document.getElementById('prefecture-count');
+    // Keep this span numeric only to avoid duplicate word labels in UI
     if (el) animateNumber(el, 0, count, 1000);
+    // Update separate word label if present, ensuring correct plural (e.g., 25 → "префектур")
+    const wordEl = document.getElementById('prefecture-word');
+    if (wordEl) wordEl.textContent = ruPluralize(count, ['префектура','префектуры','префектур']);
 }
 
 // Animate number counter
-function animateNumber(element, start, end, duration) {
+function animateNumber(element, start, end, duration, formatFn) {
     const range = end - start;
     const increment = range / (duration / 16);
     let current = start;
@@ -476,8 +480,18 @@ function animateNumber(element, start, end, duration) {
             current = end;
             clearInterval(timer);
         }
-        element.textContent = Math.floor(current);
+        const value = Math.floor(current);
+        element.textContent = typeof formatFn === 'function' ? formatFn(value) : String(value);
     }, 16);
+}
+
+// Russian pluralization helper: one/few/many
+function ruPluralize(n, forms) {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return forms[0];
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return forms[1];
+    return forms[2];
 }
 
 // Event listeners
