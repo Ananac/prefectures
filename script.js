@@ -327,6 +327,19 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
         if (fitsHoriz && fitsVert) { chosen = c; break; }
     }
 
+    // If nothing fit well (e.g., heavy zoom), fallback to viewport-centered placement
+    const nothingFits = (
+        (chosen.left < margin || (chosen.left + card.width) > (vw - margin)) ||
+        (chosen.top < margin || (chosen.top + card.height) > (vh - margin))
+    );
+    if (nothingFits) {
+        chosen.left = (vw - card.width) / 2;
+        chosen.top = (vh - card.height) / 2;
+        // Allow internal scrolling if content exceeds viewport
+        popup.style.maxHeight = `${vh - margin * 2}px`;
+        popup.style.overflowY = 'auto';
+    }
+
     // Final clamping to ensure visibility even when none fit perfectly (e.g., high zoom)
     let left = Math.min(Math.max(margin, chosen.left), Math.max(margin, vw - card.width - margin));
     let top = Math.min(Math.max(margin, chosen.top), Math.max(margin, vh - card.height - margin));
