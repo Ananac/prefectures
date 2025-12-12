@@ -27,6 +27,38 @@ body {
     position: relative;
 }
 
+/* SNS vertical rail */
+.sns-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    align-self: center; /* vertically center next to the map */
+}
+.sns-item {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    background: rgba(255,255,255,0.9);
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    color: var(--secondary);
+    text-decoration: none;
+    transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+.sns-item:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
+.sns-icon { width: 22px; height: 22px; display: block; }
+.sns-item[aria-label="Discord"] .sns-icon {
+    width: 22px;
+    height: 22px;
+}
+
+@media (max-width: 768px) {
+    .sns-rail { display: none; }
+    .sns-item { width: 34px; height: 34px; border-radius: 10px; }
+    .sns-icon { width: 18px; height: 18px; }
+}
+
 .background-pattern {
     position: fixed;
     top: 0;
@@ -170,7 +202,7 @@ header {
     left: 50%;
     transform: translateX(-50%);
     z-index: 0; /* behind the label */
-    pointer-events: none;
+    pointer-events: auto; /* allow clicking the image */
 }
 
 .title-icon {
@@ -178,7 +210,28 @@ header {
     height: auto;
     display: block;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+    cursor: pointer;
 }
+
+.stamp-label {
+    position: absolute;
+    top: -6px; /* align roughly with the peeking image */
+    left: 50%;
+    margin-left: 28px; /* push to the right of the centered image */
+    background: rgba(255,255,255,0.95);
+    color: var(--secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    opacity: 0;
+    transition: opacity 250ms ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 2; /* ensure message appears above the label */
+}
+.stamp-label.show { opacity: 1; }
 
 .subtitle {
     font-size: clamp(1rem, 2vw, 1.3rem);
@@ -197,11 +250,11 @@ main {
 
 .map-container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto; /* map flex, panel fits content */
-    gap: 2rem;
+    grid-template-columns: auto minmax(0, 1fr) auto; /* sns rail, map, panel */
+    gap: 1.5rem;
     max-width: 1200px;
     width: 100%;
-    align-items: center; /* vertically center both columns */
+    align-items: center; /* vertically center all columns */
     justify-items: stretch;
 }
 

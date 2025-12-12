@@ -530,3 +530,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Stamp image click: show friendly text briefly then fade
+document.addEventListener('DOMContentLoaded', () => {
+    const stampWrap = document.querySelector('.stamp-wrap');
+    const img = stampWrap ? stampWrap.querySelector('.title-under .title-icon') : null;
+    const msg = stampWrap ? stampWrap.querySelector('.stamp-label') : null;
+    if (img && msg) {
+        img.addEventListener('click', () => {
+            msg.classList.add('show');
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 2000);
+        });
+    }
+});
+
+// Make the videos counter redirect to YouTube channel on click
+document.addEventListener('DOMContentLoaded', () => {
+    const videoCounter = document.getElementById('video-count');
+    const channelUrl = 'https://www.youtube.com/@Tjeckon/videos';
+    if (videoCounter) {
+        videoCounter.style.cursor = 'pointer';
+        videoCounter.title = 'Открыть канал на YouTube';
+        videoCounter.addEventListener('click', () => {
+            window.open(channelUrl, '_blank', 'noopener');
+        });
+    }
+});
