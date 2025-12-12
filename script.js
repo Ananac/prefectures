@@ -107,13 +107,9 @@ const tooltip = document.getElementById('tooltip');
 async function initializeMap() {
     try {
         const obj = document.getElementById('japan-map-object');
-        if (!obj) {
-            updateVideoCount();
-            return;
-        }
+        if (!obj) { updateVideoCount(); return; }
 
-        obj.addEventListener('load', async () => {
-            const svgDoc = obj.contentDocument;
+        const attachInteractivity = (svgDoc) => {
             if (!svgDoc) return;
 
             // Inject basic interactivity styles inside the SVG
@@ -243,7 +239,14 @@ async function initializeMap() {
             });
 
             updateVideoCount();
-        });
+        };
+
+        // If the SVG is already loaded (fast cache), attach immediately; otherwise wait for 'load'
+        if (obj.contentDocument && obj.contentDocument.querySelector('svg')) {
+            attachInteractivity(obj.contentDocument);
+        } else {
+            obj.addEventListener('load', () => attachInteractivity(obj.contentDocument));
+        }
     } catch (error) {
         console.error('Error loading map:', error);
         const fallback = document.getElementById('japan-map-fallback');
@@ -287,11 +290,11 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
 
     document.body.appendChild(popup);
 
-    // Position popup near the click cursor, translating if inside embedded SVG
+    // Position popup near the click/touch point with smart placement and strict clamping
     let x = e.clientX;
     let y = e.clientY;
-    const offset = 10;
-    const margin = 10;
+    const margin = 8;
+    const gap = 10; // space between anchor and popup
     const obj = document.getElementById('japan-map-object');
     if (obj && e.target && e.target.ownerDocument && obj.contentDocument === e.target.ownerDocument) {
         const objRect = obj.getBoundingClientRect();
@@ -299,16 +302,35 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
         y = objRect.top + y;
     }
 
-    // Initial placement near cursor
-    let left = x + offset;
-    let top = y + offset;
+    // Measure card (temporarily visible for accurate size)
+    popup.style.visibility = 'hidden';
+    popup.style.left = '0px';
+    popup.style.top = '0px';
     const card = popup.getBoundingClientRect();
-    // Clamp within viewport
-    if (left + card.width > window.innerWidth - margin) left = x - card.width - offset;
-    if (top + card.height > window.innerHeight - margin) top = y - card.height - offset;
-    // Ensure minimum margins
-    left = Math.max(margin, left);
-    top = Math.max(margin, top);
+    popup.style.visibility = '';
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Try placements: right, left, below, above — pick first that fits fully
+    const candidates = [
+        { left: x + gap, top: y - card.height / 2 },            // right, centered vertically
+        { left: x - card.width - gap, top: y - card.height / 2 },// left
+        { left: x - card.width / 2, top: y + gap },              // below, centered horizontally
+        { left: x - card.width / 2, top: y - card.height - gap } // above
+    ];
+
+    let chosen = { left: x + gap, top: y + gap };
+    for (const c of candidates) {
+        const fitsHoriz = c.left >= margin && (c.left + card.width) <= (vw - margin);
+        const fitsVert = c.top >= margin && (c.top + card.height) <= (vh - margin);
+        if (fitsHoriz && fitsVert) { chosen = c; break; }
+    }
+
+    // Final clamping to ensure visibility even when none fit perfectly (e.g., high zoom)
+    let left = Math.min(Math.max(margin, chosen.left), Math.max(margin, vw - card.width - margin));
+    let top = Math.min(Math.max(margin, chosen.top), Math.max(margin, vh - card.height - margin));
+
     popup.style.left = `${left}px`;
     popup.style.top = `${top}px`;
 
