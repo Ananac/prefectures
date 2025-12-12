@@ -44,61 +44,63 @@
 
   // Config
   const MAX_PETALS = Math.min(40, Math.floor((window.innerWidth * window.innerHeight) / 35000));
-  const WIND_BASE = 0.9; // px/frame
   const GRAVITY = 0.35; // px/frame
   const SWAY = 0.6; // rotation sway
   const ALPHA_MIN = 0.10;
   const ALPHA_MAX = 0.24;
 
   const petals = [];
+  // Continuous spawn configuration: fill over a few seconds to avoid batch appearance
+  const SPAWN_FILL_SECONDS = 3.0;
+  const spawnRatePerFrame = MAX_PETALS / (SPAWN_FILL_SECONDS * 60); // approx per 60fps frame
+  let spawnAccumulator = 0;
+
+  function assignSpawn(p) {
+    // Top-only spawn, falling almost straight down
+    p.sprite.alpha = ALPHA_MIN + Math.random() * (ALPHA_MAX - ALPHA_MIN);
+    p.rotSpeed = (Math.random() - 0.5) * 0.03;
+    p.swayPhase = Math.random() * Math.PI * 2;
+    p.vy = 1.3 + Math.random() * 1.6; // slightly faster falling
+    p.sprite.x = Math.random() * window.innerWidth;
+    p.sprite.y = -30 - Math.random() * 200;
+    p.vx = (Math.random() - 0.5) * 0.9; // stronger horizontal drift
+  }
 
   function spawnPetal() {
     const sprite = new PIXI.Sprite(petalTexture);
     const scale = 0.5 + Math.random() * 1.1; // 0.5 - 1.6
     sprite.scale.set(scale);
     sprite.anchor.set(0.5);
-    sprite.alpha = ALPHA_MIN + Math.random() * (ALPHA_MAX - ALPHA_MIN);
-
-    // Start above the viewport with random x
-    sprite.x = Math.random() * window.innerWidth;
-    sprite.y = -30 - Math.random() * 200;
-
-    // Velocity
-    const vx = WIND_BASE + Math.random() * 1.1; // wind to the right
-    const vy = 1.2 + Math.random() * 1.6; // falling speed
-
-    // Rotation dynamics
-    const rotSpeed = (Math.random() - 0.5) * 0.03; // bit faster rotation
-    const swayPhase = Math.random() * Math.PI * 2;
 
     // Depth layer (for subtle parallax via alpha/scale variations already set)
     sprite.zIndex = Math.random() < 0.5 ? 0 : 1;
 
     stage.addChild(sprite);
-    petals.push({ sprite, vx, vy, rotSpeed, swayPhase });
+    const p = { sprite, vx: 0, vy: 0, rotSpeed: 0, swayPhase: 0 };
+    assignSpawn(p);
+    petals.push(p);
   }
 
-  for (let i = 0; i < MAX_PETALS; i++) spawnPetal();
+  // Gradual fill will occur in ticker; no immediate mass spawn
 
   function recyclePetal(p) {
-    p.sprite.x = -20 - Math.random() * 40; // re-enter from left sometimes
-    p.sprite.y = -30 - Math.random() * 200;
-    p.vx = WIND_BASE + Math.random() * 0.8;
-    p.vy = 1.0 + Math.random() * 1.2;
-    p.rotSpeed = (Math.random() - 0.5) * 0.02;
-    p.swayPhase = Math.random() * Math.PI * 2;
+    assignSpawn(p); // respawn at top, drifting right
   }
 
-  let windPulse = 0;
+  // No global wind; petals have only individual gentle drift and sway
 
   app.ticker.add((delta) => {
-    windPulse += 0.003 * delta; // slightly faster global wind oscillation
-    const windOsc = Math.sin(windPulse) * 0.5; // -0.5..0.5
+        // Gradually spawn petals to reach target count
+        spawnAccumulator += spawnRatePerFrame * delta;
+        while (spawnAccumulator >= 1 && petals.length < MAX_PETALS) {
+          spawnPetal();
+          spawnAccumulator -= 1;
+        }
 
     for (const p of petals) {
       const s = p.sprite;
-      // Horizontal drift with global oscillation
-      s.x += (p.vx + windOsc) * delta;
+      // Horizontal drift: per-petal baseline + micro sway
+      s.x += (p.vx + Math.sin(p.swayPhase) * 0.06) * delta;
       // Fall
       p.vy += GRAVITY * 0.01 * delta;
       s.y += p.vy * delta;
@@ -106,8 +108,8 @@
       p.swayPhase += 0.04 * delta;
       s.rotation += p.rotSpeed * delta + Math.sin(p.swayPhase) * SWAY * 0.003 * delta;
 
-      // Recycle when out of view
-      if (s.x > window.innerWidth + 60 || s.y > window.innerHeight + 60) {
+      // Recycle when out of view (bottom)
+      if (s.y > window.innerHeight + 80) {
         recyclePetal(p);
       }
     }

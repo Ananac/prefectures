@@ -516,3 +516,17 @@ document.querySelector('.modal-content').addEventListener('click', (e) => {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeMap);
 document.addEventListener('DOMContentLoaded', updatePrefectureCount);
+
+// Torii click: show inline label briefly then fade
+document.addEventListener('DOMContentLoaded', () => {
+    const torii = document.getElementById('torii');
+    const label = torii ? torii.querySelector('.torii-label') : null;
+    if (torii && label) {
+        torii.addEventListener('click', () => {
+            label.classList.add('show');
+            setTimeout(() => {
+                label.classList.remove('show');
+            }, 2000);
+        });
+    }
+});
