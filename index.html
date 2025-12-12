@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Префектуры Японии — Видео YouTube</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap&subset=cyrillic" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap&subset=cyrillic" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-pattern"></div>
+    <div class="background-decor"></div>
+    <header>
+        <div class="header-content">
+            <h1>Проект 47 префектур <span class="title-stamp" aria-hidden="true">都道府県</span></h1>
+        </div>
+    </header>
+    
+
+    <main>
+        <div class="map-container">
+                        <div class="map-wrapper">
+                                <object id="japan-map-object" data="japan-map-real.svg" type="image/svg+xml" width="100%" height="650"></object>
+                        </div>
+            
+            <div class="info-panel">
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="video-count">3</span>
+                        <span class="stat-label">Видео</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="prefecture-count">0</span>
+                        <span class="stat-label">Префектуры</span>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="close-btn" aria-label="Закрыть">&times;</button>
+            <div class="modal-body">
+                <h2 id="modal-title" class="modal-title"></h2>
+                <div id="modal-content" class="modal-video-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <!-- Pixi.js for WebGL petals overlay -->
+    <script src="https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js" integrity="sha256-5cH2bqE7gkS2E2chn8w3kKLxkTlrk6m5P3C5wJm8O8w=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js"></script>
+    <script src="petals.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
