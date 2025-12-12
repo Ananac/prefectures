@@ -12,12 +12,15 @@ const prefectureData = {
     // Kinki
     osaka: { name: 'Osaka', videos: [
         { title: 'Проект 47 префектур: Осака (Замок Осаки)', url: 'https://www.youtube.com/watch?v=N7MwRm9tnMg' },
-        { title: 'Проект 47 префектур: Осака (Cosmos Square)', url: 'https://www.youtube.com/watch?v=55UWSSfvTM0' }
+        { title: 'Проект 47 префектур: Осака (Cosmos Square)', url: 'https://www.youtube.com/watch?v=55UWSSfvTM0' },
+        { title: 'EXPO 2025 в ЯПОНИИ — ГРОМКИЙ ПРОВАЛ? Как иностранцы уничтожают Японию. Проект 47 префектур.', url: 'https://www.youtube.com/watch?v=SloReXJlvdU' },
+        { title: 'ГЛАВНОЕ СОБЫТИЕ ЯПОНИИ - EXPO 2025. Проект 47 префектур.', url: 'https://www.youtube.com/watch?v=iUT0EBYzwTY' }
     ]},
     nara: { name: 'Nara', videos: [
         { title: 'Проект 47 префектур: Нара (Икаруга)', url: 'https://www.youtube.com/watch?v=4PbjVYNthIE' },
         { title: 'Проект 47 префектур: Нара (Ямато)', url: 'https://www.youtube.com/watch?v=ZE5wusC8f3U' },
-        { title: 'Проект 47 префектур: Нара (Тодай-дзи)', url: 'https://www.youtube.com/watch?v=vUChQ74eU5Q' }
+        { title: 'Проект 47 префектур: Нара (Тодай-дзи)', url: 'https://www.youtube.com/watch?v=vUChQ74eU5Q' },
+        { title: 'Йога с ЯПОНКОЙ Аой в древней столице ЯПОНИИ НАРА🌸Разогрелись не только мышцы🌸Проект 47 префектур', url: 'https://www.youtube.com/watch?v=c3BRojPqzQo' }
     ]},
     hyogo: { name: 'Hyogo', videos: [
         { title: 'Проект 47 префектур: Хёго (Химэдзи)', url: 'https://www.youtube.com/watch?v=QCXdhgoBiXc' },
@@ -26,14 +29,17 @@ const prefectureData = {
     kyoto: { name: 'Kyoto', videos: [
         { title: 'Проект 47 префектур: Киото (Времена года)', url: 'https://www.youtube.com/watch?v=HzHaEqqLLNU' },
         { title: 'Проект 47 префектур: Киото (Фусими-Инари/Гинкакудзи)', url: 'https://www.youtube.com/watch?v=rMTLdsM_psw' },
-        { title: 'Проект 47 префектур: Киото (Арасияма/Кинкакудзи)', url: 'https://www.youtube.com/watch?v=SY4vyG9WmO0' }
+        { title: 'Проект 47 префектур: Киото (Арасияма/Кинкакудзи)', url: 'https://www.youtube.com/watch?v=SY4vyG9WmO0' },
+        { title: 'Скрытый КИОТО: Аманохасидатэ - самый красивый вид ЯПОНИИ. Путешествие с ЯПОНКОЙ. Проект 47 префектур', url: 'https://www.youtube.com/watch?v=rF1VXm7eAUw' }
     ]},
     shiga: { name: 'Shiga', videos: [
-        { title: 'Проект 47 префектур: Киото/Сига (гора Хиэй)', url: 'https://www.youtube.com/watch?v=3vPj0tZAM3Q' }
+        { title: 'Проект 47 префектур: Киото/Сига (гора Хиэй)', url: 'https://www.youtube.com/watch?v=3vPj0tZAM3Q' },
+        { title: 'БИВАКО - самое красивое озеро ЯПОНИИ. Велопрогулка по префектуре Сига. Проект 47 префектур.', url: 'https://www.youtube.com/watch?v=mIDOLOs6P6s' }
     ]},
     wakayama: { name: 'Wakayama', videos: [
         { title: 'Проект 47 префектур: Вакаяма (Кумано)', url: 'https://www.youtube.com/watch?v=dELPwINXvfA' },
-        { title: 'Проект 47 префектур: Вакаяма (гора Коя)', url: 'https://www.youtube.com/watch?v=zm2hvvdexDk' }
+        { title: 'Проект 47 префектур: Вакаяма (гора Коя)', url: 'https://www.youtube.com/watch?v=zm2hvvdexDk' },
+        { title: 'Проект 47 префектур Японии. Часть 18. Префектура Вакаяма. Город Вакаяма, Када. Марина-сити.', url: 'https://www.youtube.com/watch?v=u17XVQzz_p4' }
     ]},
     // Tokai / Chubu
     aichi: { name: 'Aichi', videos: [
@@ -41,7 +47,8 @@ const prefectureData = {
         { title: 'Проект 47 префектур: Айти (Нагоя/Ацута/Океанариум)', url: 'https://www.youtube.com/watch?v=3vn5eokL8YM' }
     ]},
     mie: { name: 'Mie', videos: [
-        { title: 'Проект 47 префектур. Часть восьмая. Префектура Миэ. Город Исэ, храм Исэ, Мэото Ива, остров Момотори.', url: 'https://www.youtube.com/watch?v=fEc2juhKQi8' }
+        { title: 'Проект 47 префектур. Часть восьмая. Префектура Миэ. Город Исэ, храм Исэ, Мэото Ива, остров Момотори.', url: 'https://www.youtube.com/watch?v=fEc2juhKQi8' },
+        { title: 'Проект 47 префектур. Часть девятая. Префектура Миэ. Город Исэ, храм Исэ. Город Сима, залив Аго.', url: 'https://www.youtube.com/watch?v=7K2_BwOwujM' }
     ]},
     ishikawa: { name: 'Ishikawa', videos: [
         { title: 'ЯПОНИЯ, КАНАДЗАВА: самурайские районы и золото. Путеводитель по Канадзаве🏮🇯🇵Проект 47 префектур', url: 'https://www.youtube.com/watch?v=Lseq7fOVbNg' }
@@ -54,7 +61,8 @@ const prefectureData = {
         { title: 'Проект 47 префектур: Хиросима', url: 'https://www.youtube.com/watch?v=HGt6Y8iErnE' }
     ]},
     shimane: { name: 'Shimane', videos: [
-        { title: 'Проект 47 префектур: Идзумо (Шимане)', url: 'https://www.youtube.com/watch?v=GobiGjXwYI0' }
+        { title: 'Проект 47 префектур: Идзумо (Шимане)', url: 'https://www.youtube.com/watch?v=GobiGjXwYI0' },
+        { title: 'МАЦУЭ - город речных каналов в ЯПОНИИ: идеальное место для свидания с ЯПОНКОЙ. Проект 47 префектур.', url: 'https://www.youtube.com/watch?v=zEWdLCrbLsU' }
     ]},
     tottori: { name: 'Tottori', videos: [
         { title: 'Проект 47 префектур: Тоттори (город/Хакуто/дюны)', url: 'https://www.youtube.com/watch?v=dOHh8mPYuh8' }
