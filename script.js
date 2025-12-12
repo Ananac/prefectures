@@ -292,7 +292,7 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
             <button class="close" aria-label="Закрыть">×</button>
         </div>
         <div class="content previews">
-            ${thumbnails || `<div class="no-video">Пока нет видео из серии.</div>`}
+            ${thumbnails || `<div class="no-video">Пока нет видео</div>`}
         </div>
     `;
 
@@ -408,7 +408,7 @@ function showTooltip(e, text) {
     if (id && prefectureData[id] && Array.isArray(prefectureData[id].videos)) {
         count = prefectureData[id].videos.length;
     }
-    const subtitle = count > 0 ? `${count} видео` : 'Пока нет видео из серии';
+    const subtitle = count > 0 ? `${count} видео` : 'Пока нет видео';
     const idForName = id;
     const ruName = (idForName && prefectureData[idForName] && prefectureData[idForName].name) ? prefectureData[idForName].name : text;
     tooltip.innerHTML = `<strong>${ruName}</strong><br/><span style="color:#4b5563;font-size:0.8rem;">${subtitle}</span>`;
