@@ -26,12 +26,23 @@ body {
     /* Modern deep indigo gradient for a clean, contemporary feel */
     background: radial-gradient(1200px 800px at 50% 10%, #121826 0%, rgba(18,24,38,0.7) 50%, rgba(18,24,38,0.4) 70%),
                 linear-gradient(180deg, #0b1020 0%, #101828 100%);
+    background-attachment: fixed;
+    background-size: cover;
     min-height: 100vh;
     color: var(--secondary);
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
     position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 1024px) {
+    body {
+        /* Mobile Safari fix for fixed backgrounds */
+        background-attachment: scroll;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -106,6 +117,11 @@ body {
     width: 100%;
     height: 100%;
     opacity: 1;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     /* Minimal noise + traditional asanoha geometric motif for subtle heritage vibe */
     background:
         radial-gradient(800px 600px at 15% 20%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 60%),
@@ -113,8 +129,12 @@ body {
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-opacity='0.06' stroke-width='1.5'%3E%3Cpath d='M100 20l20 20-20 20-20-20z'/%3E%3Cpath d='M60 60l20 20-20 20-20-20z'/%3E%3Cpath d='M140 60l20 20-20 20-20-20z'/%3E%3Cpath d='M100 100l20 20-20 20-20-20z'/%3E%3Cpath d='M20 100l20 20-20 20-20-20z'/%3E%3Cpath d='M180 100l20 20-20 20-20-20z'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 1px 1px, 1px 1px, 280px 280px;
     background-blend-mode: normal, normal, normal;
-    pointer-events: none;
-    z-index: -1; /* place behind Pixi canvas */
+}
+
+@media (max-width: 1024px) {
+    .background-pattern {
+        background-size: 1px 1px, 1px 1px, 200px 200px;
+    }
 }
 
 /* Minimal Mt. Fuji line-art silhouette in far background */
@@ -150,7 +170,10 @@ body {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: -1; /* place behind Pixi canvas */
+    z-index: 0;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 /* Clickable torii element */
@@ -307,6 +330,8 @@ main {
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -344,6 +369,9 @@ main {
     overflow: visible;
     z-index: 1;
     max-width: 100%;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -423,6 +451,9 @@ main {
     position: relative;
     color: var(--secondary);
     justify-self: center; /* center horizontally in right column */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 @media (max-width: 1024px) {
