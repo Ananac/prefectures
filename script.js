@@ -298,6 +298,9 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
 
     document.body.appendChild(popup);
 
+    // Use Visual Viewport API to handle zoom correctly
+    const visualViewport = window.visualViewport || { width: window.innerWidth, height: window.innerHeight, offsetLeft: 0, offsetTop: 0, scale: 1 };
+    
     // Position popup near the click/touch point with smart placement and strict clamping
     let x = e.clientX;
     let y = e.clientY;
@@ -310,6 +313,13 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
         y = objRect.top + y;
     }
 
+    // Apply zoom-aware max dimensions based on visible viewport
+    const maxWidth = Math.min(300, visualViewport.width - margin * 2);
+    const maxHeight = visualViewport.height - margin * 2 - 80; // Account for SNS bar on mobile
+    popup.style.maxWidth = `${maxWidth}px`;
+    popup.style.maxHeight = `${maxHeight}px`;
+    popup.style.overflowY = 'auto';
+
     // Measure card (temporarily visible for accurate size)
     popup.style.visibility = 'hidden';
     popup.style.left = '0px';
@@ -317,10 +327,12 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
     const card = popup.getBoundingClientRect();
     popup.style.visibility = '';
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    const vw = visualViewport.width;
+    const vh = visualViewport.height;
+    const offsetX = visualViewport.offsetLeft || 0;
+    const offsetY = visualViewport.offsetTop || 0;
 
-    // Try placements: right, left, below, above — pick first that fits fully
+    // Try placements: right, left, below, above — pick first that fits fully within visible viewport
     const candidates = [
         { left: x + gap, top: y - card.height / 2 },            // right, centered vertically
         { left: x - card.width - gap, top: y - card.height / 2 },// left
@@ -330,27 +342,24 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
 
     let chosen = { left: x + gap, top: y + gap };
     for (const c of candidates) {
-        const fitsHoriz = c.left >= margin && (c.left + card.width) <= (vw - margin);
-        const fitsVert = c.top >= margin && (c.top + card.height) <= (vh - margin);
+        const fitsHoriz = c.left >= (offsetX + margin) && (c.left + card.width) <= (offsetX + vw - margin);
+        const fitsVert = c.top >= (offsetY + margin) && (c.top + card.height) <= (offsetY + vh - margin);
         if (fitsHoriz && fitsVert) { chosen = c; break; }
     }
 
     // If nothing fit well (e.g., heavy zoom), fallback to viewport-centered placement
     const nothingFits = (
-        (chosen.left < margin || (chosen.left + card.width) > (vw - margin)) ||
-        (chosen.top < margin || (chosen.top + card.height) > (vh - margin))
+        (chosen.left < (offsetX + margin) || (chosen.left + card.width) > (offsetX + vw - margin)) ||
+        (chosen.top < (offsetY + margin) || (chosen.top + card.height) > (offsetY + vh - margin))
     );
     if (nothingFits) {
-        chosen.left = (vw - card.width) / 2;
-        chosen.top = (vh - card.height) / 2;
-        // Allow internal scrolling if content exceeds viewport
-        popup.style.maxHeight = `${vh - margin * 2}px`;
-        popup.style.overflowY = 'auto';
+        chosen.left = offsetX + (vw - card.width) / 2;
+        chosen.top = offsetY + (vh - card.height) / 2;
     }
 
-    // Final clamping to ensure visibility even when none fit perfectly (e.g., high zoom)
-    let left = Math.min(Math.max(margin, chosen.left), Math.max(margin, vw - card.width - margin));
-    let top = Math.min(Math.max(margin, chosen.top), Math.max(margin, vh - card.height - margin));
+    // Final clamping to ensure visibility within visible viewport (accounts for zoom)
+    let left = Math.min(Math.max(offsetX + margin, chosen.left), Math.max(offsetX + margin, offsetX + vw - card.width - margin));
+    let top = Math.min(Math.max(offsetY + margin, chosen.top), Math.max(offsetY + margin, offsetY + vh - card.height - margin));
 
     popup.style.left = `${left}px`;
     popup.style.top = `${top}px`;
