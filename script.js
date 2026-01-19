@@ -458,11 +458,16 @@ function hideTooltip() {
 
 // Update video count
 function updateVideoCount() {
-    let count = 0;
+    const uniqueVideos = new Set();
     for (const key in prefectureData) {
         const videos = prefectureData[key]?.videos || [];
-        count += Array.isArray(videos) ? videos.length : 0;
+        if (Array.isArray(videos)) {
+            videos.forEach(video => {
+                if (video.url) uniqueVideos.add(video.url);
+            });
+        }
     }
+    const count = uniqueVideos.size;
     const videoCountElement = document.getElementById('video-count');
     if (videoCountElement) {
         animateNumber(videoCountElement, 0, count, 1000);
