@@ -2,7 +2,7 @@
 // Supports multiple videos per prefecture; each entry is { title, url }
 const prefectureData = {
     miyagi: { name: 'Miyagi', videos: [
-        { title: 'СЭНДАЙ и МАЦУСИМА: путешествие по северу ЯПОНИИ | Проект 47 префектур', url: 'https://youtu.be/R2k91EpIee4' }
+        { title: 'СЭНДАЙ и МАЦУСИМА: путешествие по северу ЯПОНИИ | Проект 47 префектур', url: 'https://www.youtube.com/watch?v=R2k91EpIee4' }
     ]},
     // Kanto
     tokyo: { name: 'Tokyo', videos: [
