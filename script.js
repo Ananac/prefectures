@@ -1,6 +1,9 @@
 // Manual prefecture video mapping — ONLY "Проект 47 префектур Японии" videos
 // Supports multiple videos per prefecture; each entry is { title, url }
 const prefectureData = {
+    miyagi: { name: 'Miyagi', videos: [
+        { title: 'СЭНДАЙ и МАЦУСИМА: путешествие по северу ЯПОНИИ | Проект 47 префектур', url: 'https://youtu.be/R2k91EpIee4' }
+    ]},
     // Kanto
     tokyo: { name: 'Tokyo', videos: [
         { title: 'Проект 47 префектур: Токио (гора Такао)', url: 'https://www.youtube.com/watch?v=N-c-etwilTg' }
