@@ -1,10 +1,9 @@
 // Pixi.js WebGL sakura petals overlay
 // Renders a lightweight particle system behind the content without intercepting pointer events.
 (function() {
-  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduced) return;
-
-  if (!window.PIXI) return; // fail safe if CDN not loaded
+  // Early return if reduced motion preferred or PIXI not loaded
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if ((reducedMotion && reducedMotion.matches) || !window.PIXI) return;
 
   const app = new PIXI.Application({
     resizeTo: window,
@@ -115,20 +114,13 @@
     }
   });
 
-  // Handle resize
-  window.addEventListener('resize', () => {
-    // Adjust petal count lightly on resize (optional: skip dynamic density for simplicity)
-  });
-
   // Accessibility toggle via prefers-reduced-motion changes at runtime
-  if (window.matchMedia) {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handler = (ev) => {
+  if (reducedMotion) {
+    reducedMotion.addEventListener('change', (ev) => {
       if (ev.matches) {
         app.destroy(true);
         if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
       }
-    };
-    mq.addEventListener('change', handler);
+    });
   }
 })();

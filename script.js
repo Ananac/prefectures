@@ -105,14 +105,24 @@ const prefectureData = {
 };
 
 // DOM Elements
-// Modal deprecated; using anchored popups instead
-const modal = document.getElementById('modal');
-const modalTitle = document.getElementById('modal-title');
-const modalContent = document.getElementById('modal-content');
-const closeBtn = document.querySelector('.close-btn');
-const modalBackdrop = document.querySelector('.modal-backdrop');
 const tooltip = document.getElementById('tooltip');
-// Using inline SVG; no fetch/object needed
+
+// Calculate stats once (cached)
+const cachedStats = (() => {
+    const uniqueVideos = new Set();
+    for (const key in prefectureData) {
+        const videos = prefectureData[key]?.videos || [];
+        if (Array.isArray(videos)) {
+            videos.forEach(video => {
+                if (video.url) uniqueVideos.add(video.url);
+            });
+        }
+    }
+    return {
+        totalVideos: uniqueVideos.size,
+        totalPrefectures: Object.keys(prefectureData).length
+    };
+})();
 
 // Initialize the map
 async function initializeMap() {
@@ -265,8 +275,92 @@ async function initializeMap() {
     }
 }
 
+// Calculate optimal popup position
+function calculatePopupPosition(e, popup) {
+    const visualViewport = window.visualViewport || {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        offsetLeft: 0,
+        offsetTop: 0,
+        scale: 1
+    };
+
+    let x = e.clientX;
+    let y = e.clientY;
+    const margin = 8;
+    const gap = 10;
+
+    // Translate coordinates if event is from embedded SVG
+    const obj = document.getElementById('japan-map-object');
+    if (obj && e.target && e.target.ownerDocument && obj.contentDocument === e.target.ownerDocument) {
+        const objRect = obj.getBoundingClientRect();
+        x = objRect.left + x;
+        y = objRect.top + y;
+    }
+
+    // Apply zoom-aware max dimensions
+    const maxWidth = Math.min(300, visualViewport.width - margin * 2);
+    const maxHeight = visualViewport.height - margin * 2 - 80;
+    popup.style.maxWidth = `${maxWidth}px`;
+    popup.style.maxHeight = `${maxHeight}px`;
+    popup.style.overflowY = 'auto';
+
+    // Measure popup size
+    popup.style.visibility = 'hidden';
+    popup.style.left = '0px';
+    popup.style.top = '0px';
+    const card = popup.getBoundingClientRect();
+    popup.style.visibility = '';
+
+    const vw = visualViewport.width;
+    const vh = visualViewport.height;
+    const offsetX = visualViewport.offsetLeft || 0;
+    const offsetY = visualViewport.offsetTop || 0;
+
+    // Try placements: right, left, below, above
+    const candidates = [
+        { left: x + gap, top: y - card.height / 2 },
+        { left: x - card.width - gap, top: y - card.height / 2 },
+        { left: x - card.width / 2, top: y + gap },
+        { left: x - card.width / 2, top: y - card.height - gap }
+    ];
+
+    let chosen = { left: x + gap, top: y + gap };
+    for (const c of candidates) {
+        const fitsHoriz = c.left >= (offsetX + margin) && (c.left + card.width) <= (offsetX + vw - margin);
+        const fitsVert = c.top >= (offsetY + margin) && (c.top + card.height) <= (offsetY + vh - margin);
+        if (fitsHoriz && fitsVert) {
+            chosen = c;
+            break;
+        }
+    }
+
+    // Fallback to viewport-centered if nothing fits
+    const nothingFits = (
+        (chosen.left < (offsetX + margin) || (chosen.left + card.width) > (offsetX + vw - margin)) ||
+        (chosen.top < (offsetY + margin) || (chosen.top + card.height) > (offsetY + vh - margin))
+    );
+    if (nothingFits) {
+        chosen.left = offsetX + (vw - card.width) / 2;
+        chosen.top = offsetY + (vh - card.height) / 2;
+    }
+
+    // Final clamping
+    const left = Math.min(
+        Math.max(offsetX + margin, chosen.left),
+        Math.max(offsetX + margin, offsetX + vw - card.width - margin)
+    );
+    const top = Math.min(
+        Math.max(offsetY + margin, chosen.top),
+        Math.max(offsetY + margin, offsetY + vh - card.height - margin)
+    );
+
+    popup.style.left = `${left}px`;
+    popup.style.top = `${top}px`;
+}
+
 // Open modal
-function showPrefecturePopup(e, element, prefectureId, prefectureName) {
+function showPrefecturePopup(e, _element, prefectureId, prefectureName) {
     const data = prefectureData[prefectureId];
     const existing = document.querySelector('.prefecture-popup');
     if (existing) existing.remove();
@@ -301,71 +395,8 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
 
     document.body.appendChild(popup);
 
-    // Use Visual Viewport API to handle zoom correctly
-    const visualViewport = window.visualViewport || { width: window.innerWidth, height: window.innerHeight, offsetLeft: 0, offsetTop: 0, scale: 1 };
-    
-    // Position popup near the click/touch point with smart placement and strict clamping
-    let x = e.clientX;
-    let y = e.clientY;
-    const margin = 8;
-    const gap = 10; // space between anchor and popup
-    const obj = document.getElementById('japan-map-object');
-    if (obj && e.target && e.target.ownerDocument && obj.contentDocument === e.target.ownerDocument) {
-        const objRect = obj.getBoundingClientRect();
-        x = objRect.left + x;
-        y = objRect.top + y;
-    }
-
-    // Apply zoom-aware max dimensions based on visible viewport
-    const maxWidth = Math.min(300, visualViewport.width - margin * 2);
-    const maxHeight = visualViewport.height - margin * 2 - 80; // Account for SNS bar on mobile
-    popup.style.maxWidth = `${maxWidth}px`;
-    popup.style.maxHeight = `${maxHeight}px`;
-    popup.style.overflowY = 'auto';
-
-    // Measure card (temporarily visible for accurate size)
-    popup.style.visibility = 'hidden';
-    popup.style.left = '0px';
-    popup.style.top = '0px';
-    const card = popup.getBoundingClientRect();
-    popup.style.visibility = '';
-
-    const vw = visualViewport.width;
-    const vh = visualViewport.height;
-    const offsetX = visualViewport.offsetLeft || 0;
-    const offsetY = visualViewport.offsetTop || 0;
-
-    // Try placements: right, left, below, above — pick first that fits fully within visible viewport
-    const candidates = [
-        { left: x + gap, top: y - card.height / 2 },            // right, centered vertically
-        { left: x - card.width - gap, top: y - card.height / 2 },// left
-        { left: x - card.width / 2, top: y + gap },              // below, centered horizontally
-        { left: x - card.width / 2, top: y - card.height - gap } // above
-    ];
-
-    let chosen = { left: x + gap, top: y + gap };
-    for (const c of candidates) {
-        const fitsHoriz = c.left >= (offsetX + margin) && (c.left + card.width) <= (offsetX + vw - margin);
-        const fitsVert = c.top >= (offsetY + margin) && (c.top + card.height) <= (offsetY + vh - margin);
-        if (fitsHoriz && fitsVert) { chosen = c; break; }
-    }
-
-    // If nothing fit well (e.g., heavy zoom), fallback to viewport-centered placement
-    const nothingFits = (
-        (chosen.left < (offsetX + margin) || (chosen.left + card.width) > (offsetX + vw - margin)) ||
-        (chosen.top < (offsetY + margin) || (chosen.top + card.height) > (offsetY + vh - margin))
-    );
-    if (nothingFits) {
-        chosen.left = offsetX + (vw - card.width) / 2;
-        chosen.top = offsetY + (vh - card.height) / 2;
-    }
-
-    // Final clamping to ensure visibility within visible viewport (accounts for zoom)
-    let left = Math.min(Math.max(offsetX + margin, chosen.left), Math.max(offsetX + margin, offsetX + vw - card.width - margin));
-    let top = Math.min(Math.max(offsetY + margin, chosen.top), Math.max(offsetY + margin, offsetY + vh - card.height - margin));
-
-    popup.style.left = `${left}px`;
-    popup.style.top = `${top}px`;
+    // Position popup optimally
+    calculatePopupPosition(e, popup);
 
     // Close handlers
     popup.querySelector('.close').addEventListener('click', () => popup.remove());
@@ -388,7 +419,7 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
 
     // Also close when clicking inside the embedded SVG document (the map)
     const svgDocRef = (e && e.target && e.target.ownerDocument && e.target.ownerDocument !== document) ? e.target.ownerDocument : null;
-    const outsideHandlerSvg = (evt) => {
+    const outsideHandlerSvg = () => {
         // Any click within the SVG document should close the popup
         popup.remove();
         if (svgDocRef) svgDocRef.removeEventListener('click', outsideHandlerSvg, true);
@@ -397,15 +428,6 @@ function showPrefecturePopup(e, element, prefectureId, prefectureName) {
     if (svgDocRef) {
         svgDocRef.addEventListener('click', outsideHandlerSvg, true);
     }
-}
-
-// Close modal
-function closeModal() {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 300);
 }
 
 // Tooltip functions
@@ -458,31 +480,20 @@ function hideTooltip() {
 
 // Update video count
 function updateVideoCount() {
-    const uniqueVideos = new Set();
-    for (const key in prefectureData) {
-        const videos = prefectureData[key]?.videos || [];
-        if (Array.isArray(videos)) {
-            videos.forEach(video => {
-                if (video.url) uniqueVideos.add(video.url);
-            });
-        }
-    }
-    const count = uniqueVideos.size;
     const videoCountElement = document.getElementById('video-count');
     if (videoCountElement) {
-        animateNumber(videoCountElement, 0, count, 1000);
+        animateNumber(videoCountElement, 0, cachedStats.totalVideos, 1000);
     }
 }
 
 // Update visited prefectures count (entries in prefectureData)
 function updatePrefectureCount() {
-    const count = Object.keys(prefectureData).length;
     const el = document.getElementById('prefecture-count');
     // Keep this span numeric only to avoid duplicate word labels in UI
-    if (el) animateNumber(el, 0, count, 1000);
+    if (el) animateNumber(el, 0, cachedStats.totalPrefectures, 1000);
     // Update separate word label if present, ensuring correct plural (e.g., 25 → "префектур")
     const wordEl = document.getElementById('prefecture-word');
-    if (wordEl) wordEl.textContent = ruPluralize(count, ['префектура','префектуры','префектур']);
+    if (wordEl) wordEl.textContent = ruPluralize(cachedStats.totalPrefectures, ['префектура','префектуры','префектур']);
 }
 
 // Animate number counter
@@ -511,60 +522,34 @@ function ruPluralize(n, forms) {
     return forms[2];
 }
 
-// Event listeners
-// Deprecated modal handlers
-if (closeBtn) closeBtn.addEventListener('click', closeModal);
-if (modalBackdrop) modalBackdrop.addEventListener('click', closeModal);
-
-// Keyboard navigation
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('active')) {
-        closeModal();
-    }
-});
-
-// Prevent modal content clicks from closing modal
-document.querySelector('.modal-content').addEventListener('click', (e) => {
-    e.stopPropagation();
-});
-
-
-
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeMap);
-document.addEventListener('DOMContentLoaded', updatePrefectureCount);
-
-// Torii click: show inline label briefly then fade
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize map and counters
+    initializeMap();
+    updatePrefectureCount();
+
+    // Torii click: show inline label briefly then fade
     const torii = document.getElementById('torii');
-    const label = torii ? torii.querySelector('.torii-label') : null;
-    if (torii && label) {
+    const toriiLabel = torii ? torii.querySelector('.torii-label') : null;
+    if (torii && toriiLabel) {
         torii.addEventListener('click', () => {
-            label.classList.add('show');
-            setTimeout(() => {
-                label.classList.remove('show');
-            }, 2000);
+            toriiLabel.classList.add('show');
+            setTimeout(() => toriiLabel.classList.remove('show'), 2000);
         });
     }
-});
 
-// Stamp image click: show friendly text briefly then fade
-document.addEventListener('DOMContentLoaded', () => {
+    // Stamp image click: show friendly text briefly then fade
     const stampWrap = document.querySelector('.stamp-wrap');
-    const img = stampWrap ? stampWrap.querySelector('.title-under .title-icon') : null;
-    const msg = stampWrap ? stampWrap.querySelector('.stamp-label') : null;
-    if (img && msg) {
-        img.addEventListener('click', () => {
-            msg.classList.add('show');
-            setTimeout(() => {
-                msg.classList.remove('show');
-            }, 2000);
+    const stampImg = stampWrap ? stampWrap.querySelector('.title-under .title-icon') : null;
+    const stampMsg = stampWrap ? stampWrap.querySelector('.stamp-label') : null;
+    if (stampImg && stampMsg) {
+        stampImg.addEventListener('click', () => {
+            stampMsg.classList.add('show');
+            setTimeout(() => stampMsg.classList.remove('show'), 2000);
         });
     }
-});
 
-// Make the videos counter redirect to YouTube channel on click
-document.addEventListener('DOMContentLoaded', () => {
+    // Make the videos counter redirect to YouTube channel on click
     const videoCounter = document.getElementById('video-count');
     const channelUrl = 'https://www.youtube.com/@Tjeckon/videos';
     if (videoCounter) {
