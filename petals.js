@@ -22,10 +22,10 @@
   const stage = app.stage;
   stage.sortableChildren = true;
 
-  // Create a petal texture via vector drawing to avoid external assets
-  function createPetalTexture() {
+  // Create petal textures with variety - pink, white, light pink
+  function createPetalTexture(colorHex, alpha) {
     const g = new PIXI.Graphics();
-    g.beginFill(0xF7A8B8, 0.85);
+    g.beginFill(colorHex, alpha);
     // Simple petal shape using bezier curves
     g.moveTo(0, 0);
     g.bezierCurveTo(12, -4, 18, 6, 10, 16);
@@ -39,7 +39,13 @@
     return tex;
   }
 
-  const petalTexture = createPetalTexture();
+  // Create multiple petal textures for variety
+  const petalTextures = [
+    createPetalTexture(0xF7A8B8, 0.85), // Classic pink
+    createPetalTexture(0xFFDEE9, 0.90), // Light pink
+    createPetalTexture(0xFFFFFF, 0.75), // White
+    createPetalTexture(0xFFC0CB, 0.80), // Medium pink
+  ];
 
   // Config
   const MAX_PETALS = Math.min(40, Math.floor((window.innerWidth * window.innerHeight) / 35000));
@@ -66,7 +72,9 @@
   }
 
   function spawnPetal() {
-    const sprite = new PIXI.Sprite(petalTexture);
+    // Randomly select a petal texture for variety
+    const randomTexture = petalTextures[Math.floor(Math.random() * petalTextures.length)];
+    const sprite = new PIXI.Sprite(randomTexture);
     const scale = 0.5 + Math.random() * 1.1; // 0.5 - 1.6
     sprite.scale.set(scale);
     sprite.anchor.set(0.5);

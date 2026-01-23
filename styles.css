@@ -72,25 +72,6 @@ body {
     height: 22px;
 }
 
-/* Larger SNS icons for QHD and 4K screens */
-@media (min-width: 1920px) {
-    .sns-item {
-        width: 50px;
-        height: 50px;
-        gap: 1rem;
-    }
-
-    .sns-icon {
-        width: 26px;
-        height: 26px;
-    }
-
-    .sns-item[aria-label="Discord"] .sns-icon {
-        width: 26px;
-        height: 26px;
-    }
-}
-
 @media (max-width: 1024px) {
     .sns-rail {
         position: fixed !important;
@@ -287,17 +268,27 @@ header {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
-    position: relative; /* anchor for absolute icon */
+    gap: 0;
+    position: relative;
+    white-space: nowrap; /* prevent breaking apart */
+    /* Ensure the wrapper stays as one unit - no wrapping inside */
+    flex-shrink: 0;
 }
 
 .title-under {
-    position: absolute;
-    top: -28px; /* make the image peek from behind */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 0; /* behind the label */
-    pointer-events: auto; /* allow clicking the image */
+    /* No absolute positioning - natural flow */
+    order: -1; /* Place image before the stamp visually */
+    margin-bottom: -12px; /* Overlap with stamp below - image more visible */
+    z-index: 0;
+    pointer-events: auto;
+    display: flex;
+    justify-content: center;
+}
+
+@media (max-width: 480px) {
+    .title-under {
+        margin-bottom: -10px; /* Less overlap on mobile - more visible */
+    }
 }
 
 .title-icon {
@@ -358,17 +349,17 @@ main {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto; /* sns rail, map, panel */
     gap: 1.5rem;
-    max-width: 1800px;
+    max-width: 1200px;
     width: 100%;
     align-items: center; /* vertically center all columns */
     justify-items: stretch;
     overflow: visible;
 }
 
-/* Larger spacing for QHD and 4K screens */
-@media (min-width: 1920px) {
+/* Increase container width for QHD+ screens */
+@media (min-width: 2560px) {
     .map-container {
-        gap: 2.5rem;
+        max-width: 1400px;
     }
 }
 
@@ -393,13 +384,6 @@ main {
     transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-}
-
-/* More padding for QHD and 4K screens */
-@media (min-width: 1920px) {
-    .map-wrapper {
-        padding: 3rem;
-    }
 }
 
 @media (max-width: 1024px) {
@@ -430,10 +414,10 @@ main {
     filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
 }
 
-/* Larger map for QHD and 4K screens */
-@media (min-width: 1920px) {
+/* Increase map height for QHD+ screens (proportional to container width increase) */
+@media (min-width: 2560px) {
     #japan-map-object {
-        height: 850px;
+        height: 750px;
     }
 }
 
@@ -491,15 +475,6 @@ main {
     -webkit-backface-visibility: hidden;
 }
 
-/* Larger info panel for QHD and 4K screens */
-@media (min-width: 1920px) {
-    .info-panel {
-        width: 280px;
-        max-width: 280px;
-        padding: 1.5rem;
-    }
-}
-
 @media (max-width: 1024px) {
     .info-panel {
         width: calc(100% - 2rem);
@@ -530,17 +505,6 @@ main {
     color: var(--primary);
     line-height: 1;
     margin-bottom: 0.5rem;
-}
-
-/* Larger stats for QHD and 4K screens */
-@media (min-width: 1920px) {
-    .stat-number {
-        font-size: 2.8rem;
-    }
-
-    .stat-item {
-        padding: 1.75rem;
-    }
 }
 
 .stat-label {
@@ -789,19 +753,6 @@ main {
     font-size: 20px;
 }
 
-/* Larger zoom buttons for QHD and 4K screens */
-@media (min-width: 1920px) {
-    .zoom-btn {
-        width: 52px;
-        height: 52px;
-        font-size: 28px;
-    }
-
-    .zoom-reset {
-        font-size: 24px;
-    }
-}
-
 @media (max-width: 1024px) {
     .map-zoom-controls {
         bottom: 0.75rem;
@@ -815,3 +766,6 @@ main {
         font-size: 26px;
     }
 }
+
+/* Japanese-inspired animations and effects */
+
