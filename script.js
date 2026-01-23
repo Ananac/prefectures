@@ -229,8 +229,20 @@ async function initializeMap() {
         const obj = document.getElementById('japan-map-object');
         if (!obj) { updateVideoCount(); return; }
 
+        // CRITICAL: Create zoom container FIRST, before attaching any interactivity
+        // Moving the <object> element later would reload its contentDocument and destroy all listeners
+        const mapWrapper = document.querySelector('.map-wrapper');
+        if (mapWrapper && !document.querySelector('.map-zoom-container')) {
+            const zoomContainer = document.createElement('div');
+            zoomContainer.className = 'map-zoom-container';
+            obj.parentNode.insertBefore(zoomContainer, obj);
+            zoomContainer.appendChild(obj);
+        }
+
         const attachInteractivity = (svgDoc) => {
-            if (!svgDoc) return;
+            if (!svgDoc) {
+                return;
+            }
 
             // Inject basic interactivity styles inside the SVG
             const styleEl = svgDoc.createElement('style');
@@ -261,7 +273,9 @@ async function initializeMap() {
                 }
             `;
             const svgRoot = svgDoc.querySelector('svg');
-            if (svgRoot) svgRoot.appendChild(styleEl);
+            if (svgRoot) {
+                svgRoot.appendChild(styleEl);
+            }
 
             const prefectures = svgDoc.querySelectorAll('.prefecture');
 
@@ -316,13 +330,13 @@ async function initializeMap() {
                     prefecture.style.cursor = 'default';
                 }
 
-                prefecture.addEventListener('click', (e) => { 
-                    e.preventDefault(); 
-                    e.stopPropagation(); 
-                    if (!prefectureData[prefectureId]) return; 
-                    showPrefecturePopup(e, prefecture, prefectureId, prefectureName); 
+                prefecture.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!prefectureData[prefectureId]) return;
+                    showPrefecturePopup(e, prefecture, prefectureId, prefectureName);
                 });
-                prefecture.addEventListener('mouseenter', (e) => { 
+                prefecture.addEventListener('mouseenter', (e) => {
                     prefecture.classList.add('hovered');
                     const shapes = prefecture.querySelectorAll('path, polygon, rect, circle, ellipse');
                     const isVideo = prefecture.classList.contains('has-video');
@@ -361,12 +375,42 @@ async function initializeMap() {
             updateVideoCount();
         };
 
-        // If the SVG is already loaded (fast cache), attach immediately; otherwise wait for 'load'
-        if (obj.contentDocument && obj.contentDocument.querySelector('svg')) {
-            attachInteractivity(obj.contentDocument);
-        } else {
-            obj.addEventListener('load', () => attachInteractivity(obj.contentDocument));
-        }
+        // Robust SVG loading check with retry mechanism
+        let interactivityAttached = false;
+
+        const safeAttachInteractivity = (svgDoc) => {
+            if (!interactivityAttached && svgDoc) {
+                interactivityAttached = true;
+                attachInteractivity(svgDoc);
+            }
+        };
+
+        const tryAttachInteractivity = (attempts = 0) => {
+            const maxAttempts = 20; // Try for up to 2 seconds
+
+            if (interactivityAttached) {
+                return;
+            }
+
+            if (obj.contentDocument && obj.contentDocument.querySelector('svg')) {
+                // SVG is ready
+                safeAttachInteractivity(obj.contentDocument);
+                return;
+            }
+
+            if (attempts < maxAttempts) {
+                // Not ready yet, try again in 100ms
+                setTimeout(() => tryAttachInteractivity(attempts + 1), 100);
+            }
+        };
+
+        // Start checking immediately
+        tryAttachInteractivity();
+
+        // Also listen for load event as a backup
+        obj.addEventListener('load', () => {
+            safeAttachInteractivity(obj.contentDocument);
+        }, { once: true });
     } catch (error) {
         console.error('Error loading map:', error);
         const fallback = document.getElementById('japan-map-fallback');
@@ -617,15 +661,16 @@ function initializeZoomControls() {
     try {
         const mapWrapper = document.querySelector('.map-wrapper');
         const mapObject = document.getElementById('japan-map-object');
+        const zoomContainer = document.querySelector('.map-zoom-container');
 
-        if (!mapWrapper || !mapObject) {
-            console.warn('Map wrapper or object not found, skipping zoom initialization');
+        if (!mapWrapper || !mapObject || !zoomContainer) {
+            console.warn('Map wrapper, object, or zoom container not found, skipping zoom initialization');
             return;
         }
 
-        // Prevent double initialization
-        if (document.querySelector('.map-zoom-container')) {
-            console.warn('Zoom container already exists, skipping initialization');
+        // Prevent double initialization of controls
+        if (document.querySelector('.map-zoom-controls')) {
+            console.warn('Zoom controls already exist, skipping initialization');
             return;
         }
 
@@ -636,11 +681,7 @@ function initializeZoomControls() {
             return;
         }
 
-        // Wrap map in zoom container
-        const zoomContainer = document.createElement('div');
-        zoomContainer.className = 'map-zoom-container';
-        mapObject.parentNode.insertBefore(zoomContainer, mapObject);
-        zoomContainer.appendChild(mapObject);
+        // Note: Zoom container is already created in initializeMap() to prevent DOM moves
 
         // Create zoom buttons
         const controls = document.createElement('div');
@@ -666,12 +707,18 @@ function initializeZoomControls() {
         controls.querySelector('.zoom-reset').addEventListener('click', resetZoom);
 
         // Function to attach zoom/pan events to SVG document
+        let zoomEventsAttached = false;
+
         const attachZoomPanToSVG = () => {
+            if (zoomEventsAttached) return; // Prevent duplicate attachment
+
             const svgDoc = mapObject.contentDocument;
             if (!svgDoc) return;
 
             const svgElement = svgDoc.querySelector('svg');
             if (!svgElement) return;
+
+            zoomEventsAttached = true; // Mark as attached
 
             // Mouse wheel zoom on SVG
             svgElement.addEventListener('wheel', (e) => {
