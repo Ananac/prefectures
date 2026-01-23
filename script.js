@@ -104,6 +104,22 @@ const prefectureData = {
     ]}
 };
 
+// Zoom and pan state management
+const zoomState = {
+    scale: 1,
+    translateX: 0,
+    translateY: 0,
+    minScale: 1,
+    maxScale: 4,
+    isPanning: false,
+    isPointerDown: false,
+    dragThreshold: 10, // pixels to move before it becomes a pan
+    hasMoved: false,
+    touchStartDistance: 0,
+    touchStartScale: 1,
+    pointerStart: { x: 0, y: 0, translateX: 0, translateY: 0 }
+};
+
 // DOM Elements
 const tooltip = document.getElementById('tooltip');
 
@@ -123,6 +139,89 @@ const cachedStats = (() => {
         totalPrefectures: Object.keys(prefectureData).length
     };
 })();
+
+// Zoom utility functions
+function getDistance(touch1, touch2) {
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function getMapTransform() {
+    const container = document.querySelector('.map-zoom-container');
+    if (!container) return { scale: 1, translateX: 0, translateY: 0 };
+
+    const style = window.getComputedStyle(container);
+    const transform = style.transform || style.webkitTransform;
+
+    if (transform === 'none') {
+        return { scale: 1, translateX: 0, translateY: 0 };
+    }
+
+    const values = transform.match(/matrix\(([^)]+)\)/)[1].split(', ');
+    return {
+        scale: parseFloat(values[0]),
+        translateX: parseFloat(values[4]),
+        translateY: parseFloat(values[5])
+    };
+}
+
+// Core zoom functions
+function setTransform(scale, translateX, translateY, animate = true) {
+    const container = document.querySelector('.map-zoom-container');
+    if (!container) return;
+
+    // Clamp scale to min/max
+    scale = Math.max(zoomState.minScale, Math.min(zoomState.maxScale, scale));
+
+    // Clamp translation to prevent excessive panning
+    const rect = container.getBoundingClientRect();
+    const parentRect = container.parentElement.getBoundingClientRect();
+    const maxX = Math.max(0, (rect.width * scale - parentRect.width) / 2);
+    const maxY = Math.max(0, (rect.height * scale - parentRect.height) / 2);
+
+    translateX = Math.max(-maxX, Math.min(maxX, translateX));
+    translateY = Math.max(-maxY, Math.min(maxY, translateY));
+
+    // Update state
+    zoomState.scale = scale;
+    zoomState.translateX = translateX;
+    zoomState.translateY = translateY;
+
+    // Apply CSS transform
+    container.style.transition = animate ? 'transform 0.2s ease-out' : 'none';
+    container.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+    // Update UI
+    updateZoomButtons();
+    container.classList.toggle('zoomed', scale > 1);
+}
+
+function zoomToPoint(originX, originY, zoomFactor) {
+    const newScale = zoomState.scale * zoomFactor;
+    if (newScale < zoomState.minScale || newScale > zoomState.maxScale) return;
+
+    // Adjust translation to zoom toward the origin point
+    const deltaScale = newScale / zoomState.scale;
+    const newTranslateX = originX - deltaScale * (originX - zoomState.translateX);
+    const newTranslateY = originY - deltaScale * (originY - zoomState.translateY);
+
+    setTransform(newScale, newTranslateX, newTranslateY);
+}
+
+function resetZoom() {
+    setTransform(1, 0, 0);
+}
+
+function updateZoomButtons() {
+    const zoomInBtn = document.querySelector('.zoom-in');
+    const zoomOutBtn = document.querySelector('.zoom-out');
+    const zoomResetBtn = document.querySelector('.zoom-reset');
+
+    if (zoomInBtn) zoomInBtn.disabled = zoomState.scale >= zoomState.maxScale;
+    if (zoomOutBtn) zoomOutBtn.disabled = zoomState.scale <= zoomState.minScale;
+    if (zoomResetBtn) zoomResetBtn.disabled = zoomState.scale === 1;
+}
 
 // Initialize the map
 async function initializeMap() {
@@ -290,12 +389,21 @@ function calculatePopupPosition(e, popup) {
     const margin = 8;
     const gap = 10;
 
-    // Translate coordinates if event is from embedded SVG
+    // For events from embedded SVG, clientX/clientY are relative to the SVG document, not viewport
+    // We need to convert them to viewport coordinates
     const obj = document.getElementById('japan-map-object');
     if (obj && e.target && e.target.ownerDocument && obj.contentDocument === e.target.ownerDocument) {
+        // Get the object's transformed position
         const objRect = obj.getBoundingClientRect();
-        x = objRect.left + x;
-        y = objRect.top + y;
+
+        // Get the zoom container to find the actual zoom transform
+        const zoomContainer = document.querySelector('.map-zoom-container');
+        const currentZoom = getMapTransform();
+
+        // Event coordinates are in the SVG viewport pixel space (unzoomed)
+        // We need to: apply zoom scale, then add the transformed object position
+        x = objRect.left + (e.clientX * currentZoom.scale);
+        y = objRect.top + (e.clientY * currentZoom.scale);
     }
 
     // Apply zoom-aware max dimensions
@@ -359,7 +467,7 @@ function calculatePopupPosition(e, popup) {
     popup.style.top = `${top}px`;
 }
 
-// Open modal
+// Open popup
 function showPrefecturePopup(e, _element, prefectureId, prefectureName) {
     const data = prefectureData[prefectureId];
     const existing = document.querySelector('.prefecture-popup');
@@ -455,12 +563,20 @@ function moveTooltip(e) {
     let y = e.clientY;
     const offset = 6;
 
-    // If the event originated inside the embedded SVG object, translate coordinates
+    // For events from embedded SVG, clientX/clientY are relative to the SVG document, not viewport
+    // We need to convert them to viewport coordinates
     const obj = document.getElementById('japan-map-object');
     if (obj && e.target && e.target.ownerDocument && obj.contentDocument === e.target.ownerDocument) {
+        // Get the object's transformed position
         const objRect = obj.getBoundingClientRect();
-        x = objRect.left + x;
-        y = objRect.top + y;
+
+        // Get the current zoom transform
+        const currentZoom = getMapTransform();
+
+        // Event coordinates are in the SVG viewport pixel space (unzoomed)
+        // We need to: apply zoom scale, then add the transformed object position
+        x = objRect.left + (e.clientX * currentZoom.scale);
+        y = objRect.top + (e.clientY * currentZoom.scale);
     }
 
     let left = x + offset;
@@ -496,6 +612,283 @@ function updatePrefectureCount() {
     if (wordEl) wordEl.textContent = ruPluralize(cachedStats.totalPrefectures, ['префектура','префектуры','префектур']);
 }
 
+// Initialize zoom and pan controls
+function initializeZoomControls() {
+    try {
+        const mapWrapper = document.querySelector('.map-wrapper');
+        const mapObject = document.getElementById('japan-map-object');
+
+        if (!mapWrapper || !mapObject) {
+            console.warn('Map wrapper or object not found, skipping zoom initialization');
+            return;
+        }
+
+        // Prevent double initialization
+        if (document.querySelector('.map-zoom-container')) {
+            console.warn('Zoom container already exists, skipping initialization');
+            return;
+        }
+
+        // Check if SVG is loaded
+        if (!mapObject.contentDocument || !mapObject.contentDocument.querySelector('svg')) {
+            console.warn('SVG not loaded yet, retrying zoom initialization...');
+            setTimeout(initializeZoomControls, 200);
+            return;
+        }
+
+        // Wrap map in zoom container
+        const zoomContainer = document.createElement('div');
+        zoomContainer.className = 'map-zoom-container';
+        mapObject.parentNode.insertBefore(zoomContainer, mapObject);
+        zoomContainer.appendChild(mapObject);
+
+        // Create zoom buttons
+        const controls = document.createElement('div');
+        controls.className = 'map-zoom-controls';
+        controls.innerHTML = `
+            <button class="zoom-btn zoom-in" aria-label="Zoom in" title="Приблизить">+</button>
+            <button class="zoom-btn zoom-out" aria-label="Zoom out" title="Отдалить">−</button>
+            <button class="zoom-btn zoom-reset" aria-label="Reset zoom" title="Сбросить">⊙</button>
+        `;
+        mapWrapper.appendChild(controls);
+
+        // Button handlers
+        controls.querySelector('.zoom-in').addEventListener('click', () => {
+            const rect = zoomContainer.getBoundingClientRect();
+            zoomToPoint(rect.width / 2, rect.height / 2, 1.3);
+        });
+
+        controls.querySelector('.zoom-out').addEventListener('click', () => {
+            const rect = zoomContainer.getBoundingClientRect();
+            zoomToPoint(rect.width / 2, rect.height / 2, 1 / 1.3);
+        });
+
+        controls.querySelector('.zoom-reset').addEventListener('click', resetZoom);
+
+        // Function to attach zoom/pan events to SVG document
+        const attachZoomPanToSVG = () => {
+            const svgDoc = mapObject.contentDocument;
+            if (!svgDoc) return;
+
+            const svgElement = svgDoc.querySelector('svg');
+            if (!svgElement) return;
+
+            // Mouse wheel zoom on SVG
+            svgElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const delta = -e.deltaY;
+                const zoomFactor = delta > 0 ? 1.1 : 0.9;
+
+                // Get container rect for calculating origin
+                const rect = zoomContainer.getBoundingClientRect();
+                const objRect = mapObject.getBoundingClientRect();
+                const originX = objRect.left - rect.left + e.clientX;
+                const originY = objRect.top - rect.top + e.clientY;
+
+                zoomToPoint(originX, originY, zoomFactor);
+            }, { passive: false });
+
+            // Mouse pointer down on SVG - track but don't start panning yet
+            svgElement.addEventListener('mousedown', (e) => {
+                if (zoomState.scale === 1) return; // Only allow panning when zoomed
+
+                // Convert SVG coordinates to viewport coordinates for consistent handling
+                const objRect = mapObject.getBoundingClientRect();
+
+                zoomState.isPointerDown = true;
+                zoomState.hasMoved = false;
+                zoomState.pointerStart.x = objRect.left + (e.clientX * zoomState.scale);
+                zoomState.pointerStart.y = objRect.top + (e.clientY * zoomState.scale);
+                zoomState.pointerStart.translateX = zoomState.translateX;
+                zoomState.pointerStart.translateY = zoomState.translateY;
+            });
+
+            // Mouse move on SVG - handle panning inside the SVG
+            svgElement.addEventListener('mousemove', (e) => {
+                if (!zoomState.isPointerDown) return;
+
+                // Convert SVG coordinates to viewport coordinates, then calculate delta
+                const objRect = mapObject.getBoundingClientRect();
+                const currentX = objRect.left + (e.clientX * zoomState.scale);
+                const currentY = objRect.top + (e.clientY * zoomState.scale);
+
+                const dx = currentX - zoomState.pointerStart.x;
+                const dy = currentY - zoomState.pointerStart.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // If moved more than threshold, start panning
+                if (distance > zoomState.dragThreshold && !zoomState.isPanning) {
+                    zoomState.isPanning = true;
+                    zoomState.hasMoved = true;
+                    zoomContainer.classList.add('dragging');
+                }
+
+                // If panning, move the map
+                if (zoomState.isPanning) {
+                    setTransform(
+                        zoomState.scale,
+                        zoomState.pointerStart.translateX + dx,
+                        zoomState.pointerStart.translateY + dy,
+                        false
+                    );
+                }
+            });
+
+            // Mouse up on SVG
+            svgElement.addEventListener('mouseup', (e) => {
+                if (zoomState.isPointerDown) {
+                    // If we panned, prevent the click
+                    if (zoomState.hasMoved && zoomState.isPanning) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }
+
+                    zoomState.isPointerDown = false;
+                    zoomState.isPanning = false;
+                    zoomState.hasMoved = false;
+                    zoomContainer.classList.remove('dragging');
+                }
+            });
+
+            // Touch events on SVG
+            svgElement.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    zoomState.touchStartDistance = getDistance(touch1, touch2);
+                    zoomState.touchStartScale = zoomState.scale;
+                } else if (e.touches.length === 1 && zoomState.scale > 1) {
+                    // Convert SVG coordinates to viewport coordinates for consistent handling
+                    const objRect = mapObject.getBoundingClientRect();
+
+                    // Track touch start but don't prevent default yet (allow prefecture taps)
+                    zoomState.isPointerDown = true;
+                    zoomState.hasMoved = false;
+                    zoomState.pointerStart.x = objRect.left + (e.touches[0].clientX * zoomState.scale);
+                    zoomState.pointerStart.y = objRect.top + (e.touches[0].clientY * zoomState.scale);
+                    zoomState.pointerStart.translateX = zoomState.translateX;
+                    zoomState.pointerStart.translateY = zoomState.translateY;
+                }
+            }, { passive: false });
+
+            svgElement.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const distance = getDistance(touch1, touch2);
+                    const scale = (distance / zoomState.touchStartDistance) * zoomState.touchStartScale;
+
+                    setTransform(scale, zoomState.translateX, zoomState.translateY, false);
+                } else if (zoomState.isPointerDown && e.touches.length === 1) {
+                    // Convert SVG coordinates to viewport coordinates, then calculate delta
+                    const objRect = mapObject.getBoundingClientRect();
+                    const currentX = objRect.left + (e.touches[0].clientX * zoomState.scale);
+                    const currentY = objRect.top + (e.touches[0].clientY * zoomState.scale);
+
+                    const dx = currentX - zoomState.pointerStart.x;
+                    const dy = currentY - zoomState.pointerStart.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // If moved more than threshold, start panning
+                    if (distance > zoomState.dragThreshold && !zoomState.isPanning) {
+                        zoomState.isPanning = true;
+                        zoomState.hasMoved = true;
+                        zoomContainer.classList.add('dragging');
+                    }
+
+                    // If panning, move the map
+                    if (zoomState.isPanning) {
+                        e.preventDefault();
+                        setTransform(
+                            zoomState.scale,
+                            zoomState.pointerStart.translateX + dx,
+                            zoomState.pointerStart.translateY + dy,
+                            false
+                        );
+                    }
+                }
+            }, { passive: false });
+
+            svgElement.addEventListener('touchend', () => {
+                zoomState.isPointerDown = false;
+                zoomState.isPanning = false;
+                zoomContainer.classList.remove('dragging');
+            });
+        };
+
+        // Attach to SVG once loaded - try multiple times if needed
+        const tryAttach = (attempts = 0) => {
+            if (attempts > 10) return;
+
+            if (mapObject.contentDocument && mapObject.contentDocument.querySelector('svg')) {
+                attachZoomPanToSVG();
+            } else {
+                setTimeout(() => tryAttach(attempts + 1), 200);
+            }
+        };
+
+        tryAttach();
+
+        // Global mouse move handler - handles panning when cursor leaves SVG
+        // Note: These events are in viewport space, so no scaling needed
+        document.addEventListener('mousemove', (e) => {
+            if (!zoomState.isPointerDown) return;
+
+            const dx = e.clientX - zoomState.pointerStart.x;
+            const dy = e.clientY - zoomState.pointerStart.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // If moved more than threshold, start panning
+            if (distance > zoomState.dragThreshold && !zoomState.isPanning) {
+                zoomState.isPanning = true;
+                zoomState.hasMoved = true;
+                zoomContainer.classList.add('dragging');
+            }
+
+            // If panning, move the map
+            if (zoomState.isPanning) {
+                setTransform(
+                    zoomState.scale,
+                    zoomState.pointerStart.translateX + dx,
+                    zoomState.pointerStart.translateY + dy,
+                    false
+                );
+            }
+        });
+
+        // Mouse up AND mouse leave to reset state
+        const resetPanState = (e) => {
+            if (zoomState.isPointerDown) {
+                // If we were panning, prevent the click event on prefectures
+                if (zoomState.hasMoved && zoomState.isPanning && e.type === 'mouseup') {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+
+                zoomState.isPointerDown = false;
+                zoomState.isPanning = false;
+                zoomState.hasMoved = false;
+                zoomContainer.classList.remove('dragging');
+            }
+        };
+
+        document.addEventListener('mouseup', resetPanState, true);
+        document.addEventListener('mouseleave', resetPanState); // Reset when cursor leaves window
+
+        // Prevent iOS gesture zoom
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('gesturechange', (e) => e.preventDefault());
+
+        updateZoomButtons();
+    } catch (error) {
+        console.error('Error initializing zoom controls:', error);
+    }
+}
+
 // Animate number counter
 function animateNumber(element, start, end, duration, formatFn) {
     const range = end - start;
@@ -527,6 +920,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize map and counters
     initializeMap();
     updatePrefectureCount();
+
+    // Initialize zoom controls after a short delay to ensure map is ready
+    setTimeout(() => {
+        initializeZoomControls();
+    }, 500);
 
     // Torii click: show inline label briefly then fade
     const torii = document.getElementById('torii');
