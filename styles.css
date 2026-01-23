@@ -72,6 +72,25 @@ body {
     height: 22px;
 }
 
+/* Larger SNS icons for QHD and 4K screens */
+@media (min-width: 1920px) {
+    .sns-item {
+        width: 50px;
+        height: 50px;
+        gap: 1rem;
+    }
+
+    .sns-icon {
+        width: 26px;
+        height: 26px;
+    }
+
+    .sns-item[aria-label="Discord"] .sns-icon {
+        width: 26px;
+        height: 26px;
+    }
+}
+
 @media (max-width: 1024px) {
     .sns-rail {
         position: fixed !important;
@@ -339,11 +358,18 @@ main {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto; /* sns rail, map, panel */
     gap: 1.5rem;
-    max-width: 1200px;
+    max-width: 1800px;
     width: 100%;
     align-items: center; /* vertically center all columns */
     justify-items: stretch;
     overflow: visible;
+}
+
+/* Larger spacing for QHD and 4K screens */
+@media (min-width: 1920px) {
+    .map-container {
+        gap: 2.5rem;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -367,6 +393,13 @@ main {
     transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+}
+
+/* More padding for QHD and 4K screens */
+@media (min-width: 1920px) {
+    .map-wrapper {
+        padding: 3rem;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -395,6 +428,13 @@ main {
     height: 650px;
     display: block;
     filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
+}
+
+/* Larger map for QHD and 4K screens */
+@media (min-width: 1920px) {
+    #japan-map-object {
+        height: 850px;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -451,6 +491,15 @@ main {
     -webkit-backface-visibility: hidden;
 }
 
+/* Larger info panel for QHD and 4K screens */
+@media (min-width: 1920px) {
+    .info-panel {
+        width: 280px;
+        max-width: 280px;
+        padding: 1.5rem;
+    }
+}
+
 @media (max-width: 1024px) {
     .info-panel {
         width: calc(100% - 2rem);
@@ -481,6 +530,17 @@ main {
     color: var(--primary);
     line-height: 1;
     margin-bottom: 0.5rem;
+}
+
+/* Larger stats for QHD and 4K screens */
+@media (min-width: 1920px) {
+    .stat-number {
+        font-size: 2.8rem;
+    }
+
+    .stat-item {
+        padding: 1.75rem;
+    }
 }
 
 .stat-label {
@@ -727,6 +787,19 @@ main {
 
 .zoom-reset {
     font-size: 20px;
+}
+
+/* Larger zoom buttons for QHD and 4K screens */
+@media (min-width: 1920px) {
+    .zoom-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 28px;
+    }
+
+    .zoom-reset {
+        font-size: 24px;
+    }
 }
 
 @media (max-width: 1024px) {
