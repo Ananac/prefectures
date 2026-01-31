@@ -1,6 +1,11 @@
 // Manual prefecture video mapping — ONLY "Проект 47 префектур Японии" videos
 // Supports multiple videos per prefecture; each entry is { title, url }
 const prefectureData = {
+    // Hokkaido
+    hokkaido: { name: 'Hokkaido', videos: [
+        { title: 'ХОККАЙДО - самый северный остров ЯПОНИИ. Где встретить ЯПОНКУ в Саппоро и Отару?❄Проект 47 префектур', url: 'https://www.youtube.com/watch?v=Rk91Klk3uAY' }
+    ]},
+    // Tohoku
     miyagi: { name: 'Miyagi', videos: [
         { title: 'СЭНДАЙ и МАЦУСИМА: путешествие по северу ЯПОНИИ | Проект 47 префектур', url: 'https://www.youtube.com/watch?v=R2k91EpIee4' }
     ]},
