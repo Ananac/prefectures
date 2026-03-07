@@ -3,6 +3,7 @@
 const prefectureData = {
     // Hokkaido
     hokkaido: { name: 'Hokkaido', videos: [
+        { title: 'ЯПОНКИ И ПИВО НА САМОМ СЕВЕРЕ ЯПОНИИ ❄ Хоккайдо: Саппоро и Отару 🇯🇵 Проект 47 префектур', url: 'https://www.youtube.com/watch?v=_tPU3EJ0NGo' },
         { title: 'ХОККАЙДО - самый северный остров ЯПОНИИ. Где встретить ЯПОНКУ в Саппоро и Отару?❄Проект 47 префектур', url: 'https://www.youtube.com/watch?v=Rk91Klk3uAY' }
     ]},
     // Tohoku
