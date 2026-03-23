@@ -62,6 +62,9 @@ const prefectureData = {
     ishikawa: { name: 'Ishikawa', videos: [
         { title: 'ЯПОНИЯ, КАНАДЗАВА: самурайские районы и золото. Путеводитель по Канадзаве🏮🇯🇵Проект 47 префектур', url: 'https://www.youtube.com/watch?v=Lseq7fOVbNg' }
     ]},
+    toyama: { name: 'Toyama', videos: [
+        { title: 'ТОЯМА - РУССКОЕ ГЕТТО В ЯПОНИИ: японские авто и автопродаваны 🇯🇵🇷🇺 Проект 47 префектур', url: 'https://www.youtube.com/watch?v=l_jjofzzxeE' }
+    ]},
     // Chugoku
     okayama: { name: 'Okayama', videos: [
         { title: 'Проект 47 префектур: Окаяма (Коракуэн/Курасики)', url: 'https://www.youtube.com/watch?v=qNfC5jwaOe0' }
