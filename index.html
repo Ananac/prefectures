@@ -73,5 +73,18 @@
     <script src="https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js" crossorigin="anonymous"></script>
     <script src="petals.js"></script>
     <script src="script.js"></script>
+
+    <!-- GSAP for UI animations -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" crossorigin="anonymous"></script>
+
+    <script>
+      if (window.gsap) {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.from('header',       { y: -40, opacity: 0, duration: 0.8 })
+          .from('.map-wrapper', { opacity: 0, y: 16, duration: 0.9, ease: 'power2.out' }, '-=0.5')
+          .from('.info-panel',  { scaleX: 0, opacity: 0, duration: 0.35, ease: 'power2.out', transformOrigin: 'left center' }, '-=0.5')
+          .from('.sns-item',    { x: -28, opacity: 0, duration: 0.5, stagger: 0.07 }, '-=0.3');
+      }
+    </script>
 </body>
 </html>
