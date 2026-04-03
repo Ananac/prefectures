@@ -10,8 +10,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&family=Russo+One&family=Noto+Serif+JP:wght@500;700&display=swap&subset=cyrillic" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .gsap-ready header,
+        .gsap-ready .map-wrapper,
+        .gsap-ready .info-panel,
+        .gsap-ready .sns-item { opacity: 0; }
+    </style>
 </head>
 <body>
+    <script>document.body.classList.add('gsap-ready');</script>
     <div class="background-pattern"></div>
     <div class="background-decor"></div>
     <div id="torii" class="torii" aria-label="Torii">
@@ -78,12 +85,14 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" crossorigin="anonymous"></script>
 
     <script>
-      if (window.gsap) {
+      if (!window.gsap) {
+        document.body.classList.remove('gsap-ready');
+      } else {
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-        tl.from('header',       { y: -40, opacity: 0, duration: 0.8 })
-          .from('.map-wrapper', { opacity: 0, y: 16, duration: 0.9, ease: 'power2.out' }, '-=0.5')
-          .from('.info-panel',  { scaleX: 0, opacity: 0, duration: 0.35, ease: 'power2.out', transformOrigin: 'left center' }, '-=0.5')
-          .from('.sns-item',    { x: -28, opacity: 0, duration: 0.5, stagger: 0.07 }, '-=0.3');
+        tl.fromTo('header',       { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 })
+          .fromTo('.map-wrapper', { opacity: 0, y: 16 },  { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' }, '-=0.5')
+          .fromTo('.info-panel',  { scaleX: 0, opacity: 0, transformOrigin: 'left center' }, { scaleX: 1, opacity: 1, duration: 0.35, ease: 'power2.out' }, '-=0.5')
+          .fromTo('.sns-item',    { x: -28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.07 }, '-=0.3');
       }
     </script>
 </body>
