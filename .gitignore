@@ -1,0 +1,16 @@
+# Playwright MCP test artifacts
+.playwright-mcp/
+season-*.png
+ts-*.png
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/

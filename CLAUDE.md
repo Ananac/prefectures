@@ -36,7 +36,11 @@ Outputs `videos.json` at repo root. The script filters for videos with "Прое
   - Zoom/pan state tracked in `zoomState` object; supports mouse wheel, pinch-to-zoom, and drag
   - Tooltip placement with smart viewport-boundary fallback
 - `styles.css` — CSS custom properties for theming; breakpoint at `max-width: 1024px` for mobile layout
-- `petals.js` — Pixi.js WebGL sakura particle system; auto-scales particle count with viewport size; respects `prefers-reduced-motion`
+- `petals.js` — Pixi.js WebGL seasonal particle system; auto-detects season from current month; override via `?season=spring|summer|autumn|winter` URL param; respects `prefers-reduced-motion`
+  - Spring (Mar–Apr): sakura petals, pink/white, gentle fall
+  - Summer (May–Sep): fireflies, glowing yellow-green dots drifting upward with alpha pulse
+  - Autumn (Oct–Nov): momiji maple leaves, red/orange/amber/yellow, 5-lobe bezier shape, heavier tumbling fall
+  - Winter (Dec–Feb): snowflakes, soft white circles, dense, nearly straight fall
 - `japan-map-real.svg` — Prefecture shapes with class names matching the keys in the prefecture data object (e.g., `.hokkaido`, `.tokyo`)
 - `videos.json` — Output of fetch script; not directly consumed by the app (data is embedded in `script.js`)
 
