@@ -36,6 +36,8 @@ Outputs `videos.json` at repo root. The script filters for videos with "Прое
   - Zoom/pan state tracked in `zoomState` object; supports mouse wheel, pinch-to-zoom, and drag
   - Tooltip placement with smart viewport-boundary fallback
 - `styles.css` — CSS custom properties for theming; breakpoint at `max-width: 1024px` for mobile layout
+  - Stats 2-column grid activates only at ≤1024px (where info panel is full-width); stays 1-column on desktop (panel is fixed 220px)
+  - SNS hover: spring easing with overshoot, `translateY(-4px) scale(1.12)`, accent ring, icon color → `--primary`, `:active` press feedback
 - `petals.js` — Pixi.js WebGL seasonal particle system; auto-detects season from current month; override via `?season=spring|summer|autumn|winter` URL param; respects `prefers-reduced-motion`
   - Spring (Mar–Apr): sakura petals, pink/white, gentle fall
   - Summer (May–Sep): fireflies, glowing yellow-green dots drifting upward with alpha pulse
@@ -48,6 +50,12 @@ Outputs `videos.json` at repo root. The script filters for videos with "Прое
 
 1. Add an SVG `<path>` element to `japan-map-real.svg` with the prefecture class name and a `<title>` child element
 2. Add the entry to the prefecture data object in `script.js` with matching key, `name`, and `videos` array
+
+### GSAP animations (index.html)
+
+FOUC fix pattern used: CSS pre-hides animated elements under `.gsap-ready` class (added synchronously by inline script at `<body>` start). GSAP uses `fromTo()` (not `from()`) for explicit start+end states. Failsafe: if GSAP fails to load, `gsap-ready` class is removed so elements become visible.
+
+Animation sequence: header → map-wrapper → info-panel (scaleX from left) → sns-item (staggered).
 
 ### SVG loading
 

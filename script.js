@@ -65,6 +65,9 @@ const prefectureData = {
     toyama: { name: 'Toyama', videos: [
         { title: 'ТОЯМА - РУССКОЕ ГЕТТО В ЯПОНИИ: японские авто и автопродаваны 🇯🇵🇷🇺 Проект 47 префектур', url: 'https://www.youtube.com/watch?v=l_jjofzzxeE' }
     ]},
+    gifu: { name: 'Gifu', videos: [
+        { title: 'СИРАКАВА-ГО: ЯПОНСКАЯ ДЕРЕВНЯ ПРЯМИКОМ ИЗ АНИМЕ 🇯🇵 Проект 47 префектур', url: 'https://www.youtube.com/watch?v=0iIAZG6CSyI' }
+    ]},
     // Chugoku
     okayama: { name: 'Okayama', videos: [
         { title: 'Проект 47 префектур: Окаяма (Коракуэн/Курасики)', url: 'https://www.youtube.com/watch?v=qNfC5jwaOe0' }

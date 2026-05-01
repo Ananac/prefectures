@@ -40,6 +40,7 @@ def fetch_entries(channel_url: str):
         "skip_download": True,
         "quiet": True,
         "no_warnings": True,
+        "nocheckcertificate": True,
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(channel_url, download=False)
