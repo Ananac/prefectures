@@ -102,6 +102,9 @@ const prefectureData = {
     oita: { name: 'Oita', videos: [
         { title: 'Проект 47 префектур: Беппу (Оита)', url: 'https://www.youtube.com/watch?v=f0C0bDtjylI' }
     ]},
+    nagasaki: { name: 'Nagasaki', videos: [
+        { title: 'НАГАСАКИ: ПОЧТИ лучшая префектура ЯПОНИИ. ЯПОНКА призналась мне в любви 🏮🇯🇵 Проект 47 префектур', url: 'https://www.youtube.com/watch?v=D86Oh9URcPE' }
+    ]},
     // Kanto adjacent
     yamanashi: { name: 'Yamanashi', videos: [
         { title: 'Проект 47 префектур: Яманаси/Сидзуока (Хаякава/Аокигахара)', url: 'https://www.youtube.com/watch?v=aefbNT6BJIw' }
